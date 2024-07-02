@@ -1,0 +1,23 @@
+{
+  "name": "project-config-example",
+  "version": "1.0.0",
+  "private": "true",
+  "description": "This is a test project for template configuration files",
+  "main": "index.js",
+  "scripts": {
+    "format:check": "prettier --check \"./**/*.{html,css,js,jsx,ts,tsx,php,md,mdx,json}\"",
+    "format:fix": "prettier --write \"./**/*.{html,css,js,jsx,ts,tsx,php,md,mdx,json}\""
+  },
+  "dependencies": {
+
+
+    
+  },
+  "devDependencies": {
+    "@prettier/plugin-php": "^0.19.0",
+    "prettier": "^2.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

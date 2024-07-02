@@ -1,0 +1,11 @@
+{
+  "name": "neonsy/project-config-example",
+  "description": "This is a test project for template configuration files",
+  
+  
+  "type": "project",
+
+
+  
+  "require": {}
+}
