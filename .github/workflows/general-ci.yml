@@ -1,0 +1,88 @@
+name: General CI
+
+on:
+  pull_request:
+    branches: [ dependabot-npm-composer-prettier ]
+
+jobs:
+  general-ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20]
+        pnpm-version: [9]
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM ${{ matrix.pnpm-version }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ matrix.pnpm-version }}
+
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run format:check
+        id: format_check
+        run: pnpm run format:check
+        continue-on-error: true
+
+      - name: Add label(s) when prettier check fails
+        if: steps.format_check.outcome == 'failure'
+        uses: actions-ecosystem/action-add-labels@v1.1.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            prettier-error
+            prettier-auto-fix
+
+      - name: Remove label(s) when prettier check succeeds
+        if: steps.format_check.outcome == 'success'
+        uses: actions-ecosystem/action-remove-labels@v1.3.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            prettier-error
+            prettier-auto-fix
+
+      - name: Run format:fix if needed
+        if: steps.format_check.outcome == 'failure'
+        run: |
+          pnpm run format:fix
+          echo "::notice ::Prettier checked failed. The PR has been formatted"
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "has_changes=true" >> $GITHUB_ENV
+          else
+            echo "has_changes=false" >> $GITHUB_ENV
+          fi
+
+      - name: Commit and push changes
+        if: env.has_changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Apply formatting changes"
+          git fetch origin ${{ github.head_ref }}
+          git rebase origin/${{ github.head_ref }}
+          git push origin "HEAD:${{ github.head_ref }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
