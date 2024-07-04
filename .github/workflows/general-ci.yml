@@ -2,7 +2,7 @@ name: General CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ dependabot-npm-composer-prettier ]
 
 jobs:
   general-ci:
